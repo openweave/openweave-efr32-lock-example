@@ -34,23 +34,38 @@
 
 PROJECT_ROOT := $(realpath .)
 
-EFR32_TOOLS_ROOT := $(PROJECT_ROOT)/../../../../../../
-EFR32_SDK_ROOT   := $(PROJECT_ROOT)/../../
+#
+# Location of EFR32 SDK and tools
+#
+# The default values expect the OpenWeave application to be located in the
+# app subdirectory of the Simplicity Studio v2.7 SDK.  E.g.:
+#
+#    SimplicityStudio_v4/developer/sdks/gecko_sdk_suite/v2.7/app
+#
+# Override these in the environment to allow to application to be located
+# elsewhere.
+#
+EFR32_TOOLS_ROOT ?= $(PROJECT_ROOT)/../../../../../../
+EFR32_SDK_ROOT   ?= $(PROJECT_ROOT)/../../
 
-OPENWEAVE_ROOT    := $(PROJECT_ROOT)/third_party/openweave-core
-FREERTOS_ROOT     := $(PROJECT_ROOT)/third_party/FreeRTOS/FreeRTOS
-OPENTHREAD_ROOT   := $(PROJECT_ROOT)/third_party/openthread
-BUILD_SUPPORT_DIR := $(OPENWEAVE_ROOT)/build/efr32
+#
+# Default locations of dependent projects
+#
+OPENWEAVE_ROOT ?= $(PROJECT_ROOT)/third_party/openweave-core
+OPENTHREAD_ROOT ?= $(PROJECT_ROOT)/third_party/openthread
+FREERTOS_ROOT ?= $(PROJECT_ROOT)/third_party/FreeRTOS/FreeRTOS
 
 FREERTOSCONFIG_DIR := $(PROJECT_ROOT)/main/include
 
-OPENTHREAD_SDK_SYMLINK := $(PROJECT_ROOT)/third_party/openthread/third_party/silabs/gecko_sdk_suite
-GECKO_SDK_SUITE_DIR    := $(PROJECT_ROOT)/../../..
+OPENTHREAD_SDK_SYMLINK := $(OPENTHREAD_ROOT)/third_party/silabs/gecko_sdk_suite
+GECKO_SDK_SUITE_DIR    := $(EFR32_SDK_ROOT)/..
 
 all : | $(OPENTHREAD_SDK_SYMLINK) 
 
 $(OPENTHREAD_SDK_SYMLINK) :
 	ln -s $(GECKO_SDK_SUITE_DIR) $(OPENTHREAD_SDK_SYMLINK)
+
+BUILD_SUPPORT_DIR := $(OPENWEAVE_ROOT)/build/efr32
 
 include $(BUILD_SUPPORT_DIR)/efr32-app.mk
 include $(BUILD_SUPPORT_DIR)/efr32-openweave.mk
@@ -119,5 +134,9 @@ endif
 
 OPENWEAVE_PROJECT_CONFIG = $(PROJECT_ROOT)/main/include/WeaveProjectConfig.h
 OPENTHREAD_PROJECT_CONFIG = $(PROJECT_ROOT)/main/include/OpenThreadConfig.h
+
+clean ::
+	@echo "RM $(OPENTHREAD_SDK_SYMLINK) "
+	$(NO_ECHO)rm -f $(OPENTHREAD_SDK_SYMLINK) 
 
 $(call GenerateBuildRules)
